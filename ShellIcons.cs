@@ -125,4 +125,111 @@ internal static class ShellIcons
         };
         ShellExecuteEx(ref info);
     }
+
+    // ───────────────────────── miniatury ─────────────────────────
+
+    [ComImport, Guid("bcc18b79-ba16-442f-80c4-8a59c30c463b"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IShellItemImageFactory
+    {
+        [PreserveSig] int GetImage(NativeSize size, int flags, out IntPtr phbm);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct NativeSize { public int Width, Height; }
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern int SHCreateItemFromParsingName(string path, IntPtr pbc, ref Guid riid,
+        [MarshalAs(UnmanagedType.Interface)] out IShellItemImageFactory? factory);
+
+    [DllImport("gdi32.dll")]
+    private static extern bool DeleteObject(IntPtr hObject);
+
+    /// <summary>
+    /// Miniatura pliku tak, jak pokazuje ją Eksplorator (zdjęcia, filmy, PDF…),
+    /// a dla innych plików — duża ikona. Wynik ma dokładnie <paramref name="size"/>×<paramref name="size"/>
+    /// (obraz wyśrodkowany), bo ImageList rozciąga obrazy. Wywoływać w wątku STA.
+    /// </summary>
+    public static Bitmap? GetThumbnail(string path, int size)
+    {
+        var iid = typeof(IShellItemImageFactory).GUID;
+        if (SHCreateItemFromParsingName(path, IntPtr.Zero, ref iid, out var factory) != 0 || factory == null) return null;
+        IntPtr hbm = IntPtr.Zero;
+        try
+        {
+            if (factory.GetImage(new NativeSize { Width = size, Height = size }, 0, out hbm) != 0 || hbm == IntPtr.Zero) return null;
+            using var image = FromHBitmap(hbm);
+            var result = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using var g = Graphics.FromImage(result);
+            float scale = Math.Min(1f, Math.Min((float)size / image.Width, (float)size / image.Height));
+            int w = (int)(image.Width * scale), h = (int)(image.Height * scale);
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            g.DrawImage(image, (size - w) / 2, (size - h) / 2, w, h);
+            return result;
+        }
+        catch
+        {
+            return null;
+        }
+        finally
+        {
+            if (hbm != IntPtr.Zero) DeleteObject(hbm);
+            Marshal.ReleaseComObject(factory);
+        }
+    }
+
+    /// <summary>HBITMAP z kanałem alfa (Image.FromHbitmap gubi przezroczystość ikon).</summary>
+    private static Bitmap FromHBitmap(IntPtr hbm)
+    {
+        var bmp = Image.FromHbitmap(hbm);
+        if (Image.GetPixelFormatSize(bmp.PixelFormat) < 32) return bmp;
+
+        var rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
+        var data = bmp.LockBits(rect, System.Drawing.Imaging.ImageLockMode.ReadOnly, bmp.PixelFormat);
+        Bitmap? copy = null;
+        try
+        {
+            // Zdjęcia często mają alfę = 0 w całym obrazie — wtedy alfy nie ma w ogóle.
+            bool hasAlpha = false;
+            for (int y = 0; y < data.Height && !hasAlpha; y++)
+                for (int x = 0; x < data.Width; x++)
+                    if (Marshal.ReadByte(data.Scan0, y * data.Stride + x * 4 + 3) != 0) { hasAlpha = true; break; }
+            if (hasAlpha)
+            {
+                using var argb = new Bitmap(data.Width, data.Height, data.Stride, System.Drawing.Imaging.PixelFormat.Format32bppArgb, data.Scan0);
+                copy = new Bitmap(argb);
+            }
+        }
+        finally
+        {
+            bmp.UnlockBits(data);
+        }
+        if (copy == null) return bmp;
+        bmp.Dispose();
+        return copy;
+    }
+
+    // ───────────────────────── znane katalogi ─────────────────────────
+
+    [DllImport("shell32.dll")]
+    private static extern int SHGetKnownFolderPath(ref Guid id, uint flags, IntPtr token, out IntPtr path);
+
+    /// <summary>Katalog „Pobrane” (może być przeniesiony przez użytkownika, więc pytamy system).</summary>
+    public static string Downloads
+    {
+        get
+        {
+            var id = new Guid("374DE290-123F-4565-9164-39C4925E467B");
+            try
+            {
+                if (SHGetKnownFolderPath(ref id, 0, IntPtr.Zero, out var p) == 0)
+                {
+                    string s = Marshal.PtrToStringUni(p)!;
+                    Marshal.FreeCoTaskMem(p);
+                    return s;
+                }
+            }
+            catch { }
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+        }
+    }
 }
