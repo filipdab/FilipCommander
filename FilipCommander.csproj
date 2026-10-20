@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <AssemblyName>FilipCommander</AssemblyName>
+    <RootNamespace>FilipCommander</RootNamespace>
+    <Product>FilipCommander</Product>
+    <Version>1.1.0</Version>
+    <Authors>Filip Dąbrowski</Authors>
+    <Company>Filip Dąbrowski</Company>
+    <Copyright>© 2026 Filip Dąbrowski</Copyright>
+    <Description>Dwupanelowy menedżer plików dla Windows</Description>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+  </PropertyGroup>
+
+</Project>
