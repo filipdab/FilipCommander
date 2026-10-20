@@ -10,12 +10,16 @@
     <AssemblyName>FilipCommander</AssemblyName>
     <RootNamespace>FilipCommander</RootNamespace>
     <Product>FilipCommander</Product>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Filip Dąbrowski</Authors>
     <Company>Filip Dąbrowski</Company>
     <Copyright>© 2026 Filip Dąbrowski</Copyright>
     <Description>Dwupanelowy menedżer plików dla Windows</Description>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpCompress" Version="0.50.7" />
+  </ItemGroup>
 
 </Project>

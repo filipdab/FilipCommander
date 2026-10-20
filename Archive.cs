@@ -30,6 +30,7 @@ public sealed class ProgressDialog : Form
         cancel.Click += (_, _) => { _cts.Cancel(); cancel.Enabled = false; _label.Text = "Przerywanie…"; };
         Controls.AddRange(new Control[] { _label, _bar, cancel });
         CancelButton = cancel;
+        Theme.Apply(this);
     }
 
     /// <summary>
@@ -309,7 +310,7 @@ public static class ZipOps
         return sb.ToString().Replace("\r\n", "\n").Replace("\n", "\r\n");
     }
 
-    private static bool TryTarget(string targetDir, string entryName, out string dest)
+    internal static bool TryTarget(string targetDir, string entryName, out string dest)
     {
         char sep = Path.DirectorySeparatorChar;
         string root = Path.GetFullPath(targetDir).TrimEnd(sep) + sep;
