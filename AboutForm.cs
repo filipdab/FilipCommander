@@ -23,13 +23,12 @@ public sealed class AboutForm : Form
         AutoScaleMode = AutoScaleMode.Font;
         Font = new Font("Segoe UI", 9f);
         ClientSize = new Size(400, 270);
-        BackColor = SystemColors.Window;
 
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         string versionText = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0";
 
         // Pasek z nazwą programu.
-        var banner = new Panel { Dock = DockStyle.Top, Height = 78, BackColor = SystemColors.ActiveCaption };
+        var banner = new Panel { Dock = DockStyle.Top, Height = 78, BackColor = Theme.ActiveHeader };
         var icon = new PictureBox
         {
             Left = 20, Top = 15, Width = 48, Height = 48,
@@ -43,14 +42,14 @@ public sealed class AboutForm : Form
             Text = "FilipCommander",
             Left = 80, Top = 14, AutoSize = true,
             Font = new Font("Segoe UI", 16f, FontStyle.Bold),
-            ForeColor = SystemColors.ActiveCaptionText,
+            ForeColor = Theme.ActiveHeaderText,
             BackColor = Color.Transparent
         };
         var subtitle = new Label
         {
             Text = $"wersja {versionText}  ·  dwupanelowy menedżer plików",
             Left = 82, Top = 48, AutoSize = true,
-            ForeColor = SystemColors.ActiveCaptionText,
+            ForeColor = Theme.ActiveHeaderText,
             BackColor = Color.Transparent
         };
         banner.Controls.AddRange(new Control[] { icon, title, subtitle });
@@ -68,7 +67,7 @@ public sealed class AboutForm : Form
         {
             Text = $"© {DateTime.Now.Year} {Author}\n{RuntimeInformation.FrameworkDescription}, {RuntimeInformation.OSDescription}",
             Left = 24, Top = 186, Width = 360, Height = 34,
-            ForeColor = SystemColors.GrayText
+            ForeColor = Theme.Gray
         };
 
         var ok = new Button { Text = "OK", DialogResult = DialogResult.OK, Width = 90, Height = 28, Left = 290, Top = 228 };
@@ -76,10 +75,12 @@ public sealed class AboutForm : Form
         Controls.AddRange(new Control[] { banner, authorCaption, author, emailCaption, email, wwwCaption, www, runtime, ok });
         AcceptButton = ok;
         CancelButton = ok;
+        Theme.Apply(this);
+        BackColor = Theme.Window;
     }
 
     private static Label Caption(string text, int top) =>
-        new() { Text = text, Left = 24, Top = top, Width = 80, ForeColor = SystemColors.GrayText };
+        new() { Text = text, Left = 24, Top = top, Width = 80, ForeColor = Theme.Gray };
 
     private LinkLabel Link(string text, int top, string target)
     {

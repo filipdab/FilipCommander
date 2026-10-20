@@ -123,6 +123,7 @@ public sealed class SearchForm : Form
         AcceptButton = _start;
         Shown += (_, _) => { _mask.Focus(); _mask.SelectAll(); };
         FormClosing += (_, _) => _cts?.Cancel();
+        Theme.Apply(this);
     }
 
     private static Label Lbl(string text) =>
