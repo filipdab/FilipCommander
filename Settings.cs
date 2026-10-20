@@ -16,6 +16,21 @@ public sealed class Settings
     public int WindowHeight { get; set; } = 750;
     public bool Maximized { get; set; }
 
+    public List<string> LeftTabs { get; set; } = new();
+    public List<string> RightTabs { get; set; } = new();
+    public int LeftTab { get; set; }
+    public int RightTab { get; set; }
+    public PanelView LeftView { get; set; }
+    public PanelView RightView { get; set; }
+    /// <summary>Ulubione katalogi (Ctrl+D).</summary>
+    public List<string> Favorites { get; set; } = new();
+    /// <summary>„system”, „light” albo „dark”.</summary>
+    public string Theme { get; set; } = "system";
+    public string FontName { get; set; } = "Segoe UI";
+    public float FontSize { get; set; } = 9f;
+    /// <summary>Prawy przycisk: menu kontekstowe zamiast zaznaczania.</summary>
+    public bool RightClickMenu { get; set; }
+
     private static string FilePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "FilipCommander", "settings.json");
